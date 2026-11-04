@@ -8,8 +8,8 @@ class LoginSuccessModel {
 
   static LoginSuccessModel fromJson(Map<String, dynamic> json) {
     return LoginSuccessModel(
-      user: json["user"],
-      token: json["token"]
+      user: UserModel.fromJson(json["user"]),
+      token: json["token"],
     );
   }
 }

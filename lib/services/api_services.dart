@@ -31,14 +31,24 @@ class ApiServices {
     required String email,
     required String password,
   }) async {
-    final response = await _dio.post(
-      "/auth/login",
-      data: {"email": email, "password": password},
-    );
-    if (response.statusCode != 200) {
+    try {
+      final response = await _dio.post(
+        "/auth/login",
+        data: {"email": email, "password": password},
+      );
+      if (response.statusCode != 200) {
+        return null;
+      }
+      final loginSuccessModel = LoginSuccessModel.fromJson(
+        response.data["data"],
+      );
+      return loginSuccessModel;
+    } catch (e) {
+      if (e is DioException) {
+        print(e.response?.data);
+      }
+
       return null;
     }
-    final loginSuccessModel = LoginSuccessModel.fromJson(response.data["data"]);
-    return loginSuccessModel;
   }
 }

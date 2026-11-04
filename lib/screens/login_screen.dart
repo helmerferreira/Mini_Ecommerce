@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:full_work/cubits/auth/auth_cubit.dart';
+import 'package:full_work/cubits/auth/auth_state.dart';
 
 import 'registrar_1.dart';
 import 'widget_login.dart';
@@ -48,12 +50,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 Customtextfild(
                   hintText: "Email",
                   prefixIcon: Icons.email_rounded,
+                  controller: _emailController,
                 ),
                 SizedBox(height: 10),
                 Customtextfild(
                   hintText: "Senha",
                   prefixIcon: Icons.lock,
                   obscureText: true,
+                  controller: _passwordController,
                 ),
               ],
             ),
@@ -64,21 +68,35 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 FractionallySizedBox(
                   widthFactor: 0.5,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final password = _passwordController.text;
-                      final email = _emailController.text.trim();
-                      final hasBeenSuccess = await authCubit.login(
-                        email: email,
-                        password: password,
-                      );
-                      if (hasBeenSuccess) {
-                        print("Login FEITO COM SUCESSO");
-                      } else {
-                        print("Login mal feito");
+                  child: BlocBuilder(
+                    bloc: authCubit,
+                    builder: (context, AuthState state) {
+                      if (state is AuthLoadingState) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        );
                       }
+                      if (state is AuthAuthenticatedState) {
+                        return Text(state.user.name ?? "Nome não fornecido");
+                      }
+                      return ElevatedButton(
+                        onPressed: () async {
+                          final password = _passwordController.text;
+                          final email = _emailController.text.trim();
+                          final hasBeenSuccess = await authCubit.login(
+                            email: email,
+                            password: password,
+                          );
+                          if (hasBeenSuccess) {
+                            print("Login FEITO COM SUCESSO");
+                          } else {
+                            print("Login mal feito");
+                          }
+                        },
+                        child: Text("Entrar"),
+                      );
                     },
-                    child: Text("Entrar"),
                   ),
                 ),
                 SizedBox(height: 10),
