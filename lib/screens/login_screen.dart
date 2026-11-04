@@ -80,19 +80,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (state is AuthAuthenticatedState) {
                         return Text(state.user.name ?? "Nome não fornecido");
                       }
+                      if (state is AuthErrorState) {
+                        return Text(
+                          state.message,
+                          style: TextStyle(color: Colors.red),
+                        );
+                      }
                       return ElevatedButton(
                         onPressed: () async {
                           final password = _passwordController.text;
                           final email = _emailController.text.trim();
-                          final hasBeenSuccess = await authCubit.login(
-                            email: email,
-                            password: password,
-                          );
-                          if (hasBeenSuccess) {
-                            print("Login FEITO COM SUCESSO");
-                          } else {
-                            print("Login mal feito");
-                          }
+                          authCubit.login(email: email, password: password);
                         },
                         child: Text("Entrar"),
                       );

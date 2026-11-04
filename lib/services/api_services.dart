@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:full_work/core/erros/app_error.dart';
 import 'package:full_work/models/login_success_model.dart';
 
 class ApiServices {
@@ -27,7 +28,7 @@ class ApiServices {
     return response.statusCode == 201;
   }
 
-  static Future<LoginSuccessModel?> login({
+  static Future<LoginSuccessModel> login({
     required String email,
     required String password,
   }) async {
@@ -37,18 +38,33 @@ class ApiServices {
         data: {"email": email, "password": password},
       );
       if (response.statusCode != 200) {
-        return null;
+        throw AppError();
       }
       final loginSuccessModel = LoginSuccessModel.fromJson(
         response.data["data"],
       );
       return loginSuccessModel;
     } catch (e) {
-      if (e is DioException) {
-        print(e.response?.data);
+      if (e is! DioException) {
+        throw AppError();
+      }
+      final resposta = e.response?.data as Map;
+      if (e.response?.statusCode == 400 && resposta.containsKey("error")) {
+        final List detalhes = (resposta["error"]["details"]) ?? [];
+        if (detalhes.isEmpty) {
+          throw AppError();
+        }
+        throw AppError(
+          detalhes.first["message"] ?? "Ocorreu um erro, tente novamente",
+        );
+      }
+      if (e.response?.statusCode == 401 && resposta.containsKey("error")) {
+        throw AppError(
+          resposta["error"]["message"] ?? "Ocorreu um erro, tente novamente",
+        );
       }
 
-      return null;
+      return throw AppError();
     }
   }
 }
